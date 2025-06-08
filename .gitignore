@@ -27,11 +27,15 @@ Thumbs.db
 /postgrep/.venv/
 
 # wordpress
-/wordpress/*
-!/wordpress/wp-content/themes/neve-child/
-!/wordpress/nginx-conf/
-!/wordpress/.dockerignore
-!/wordpress/.env
-!/wordpress/docker-compose.yml
+/wordpress/wordpress/*
+!/wordpress/wordpress/wp-content/
+/wordpress/wordpress/wp-content/*
+!/wordpress/wordpress/wp-content/themes/
+/wordpress/wordpress/wp-content/themes/*
+!/wordpress/wordpress/wp-content/themes/neve-child/
+/wordpress/wordpress/wp-config.php
+/wordpress/dbdata/
+/wordpress/certbot-etc/
+/wordpress/backup/
 
 

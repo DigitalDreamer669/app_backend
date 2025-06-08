@@ -14,11 +14,14 @@ add_action( 'wp_enqueue_scripts', 'neve_child_parent_theme_enqueue_styles' );
  * Enqueue scripts and styles.
  */
 function neve_child_parent_theme_enqueue_styles() {
-        $version = "1";
+        $version = "3.1";
         wp_enqueue_style( 'neve-style', get_template_directory_uri() . '/style.css', $version);
         wp_enqueue_style( 'neve-child-style',
         get_stylesheet_directory_uri() . '/style.css', [ 'neve-style' ], $version);
-        
+        wp_enqueue_script('login-page', get_stylesheet_directory_uri() . '/js/login-page.js', array('jquery'), $version, true);
+        wp_enqueue_script('login_page_admin', get_stylesheet_directory_uri() . '/js/login_page_admin.js', array('jquery'), $version, true);
+        wp_enqueue_script('admin-panel', get_stylesheet_directory_uri() . '/js/admin-panel.js', array('jquery'), $version, true);
+
 }
 
 

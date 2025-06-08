@@ -12,4 +12,102 @@ Author URI: https://example.com
 /* @import url("../neve/style.css"); */
 
 
-/* Базовые стили для html и body */
+body {
+    background-color: #f8f9fa; /* A very light grey, almost white */
+}
+
+.login-container {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Larger input fields and button */
+.form-control, .btn {
+    min-height: 50px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
+}
+
+.btn-primary {
+    font-weight: 600;
+}
+
+.logo-img {
+    width: 80px;
+    height: 80px;
+}
+
+.forgot-password-link {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
+
+a.neve-skip-link {
+    display: none !important;
+}
+
+
+/* Стили для кнопок действий в таблице */
+.table .btn-group .btn {
+    /* Добавляем плавный переход для эффекта наведения */
+    transition: all 0.2s ease-in-out;
+}
+
+.table .btn-group .btn:hover {
+    /* Немного приподнимаем кнопку при наведении для красивого эффекта */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Увеличиваем иконки внутри кнопок */
+.table .btn .bi {
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+
+/* Контейнер для кнопок действий */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem; /* Расстояние между кнопками */
+    justify-content: flex-end;
+}
+
+/* Стили для самих кнопок действий */
+.action-buttons .btn {
+    /* Делаем кнопки крупнее */
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+    
+    /* Красиво выравниваем иконку и текст */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem; /* Расстояние между иконкой и текстом */
+    
+    transition: all 0.2s ease-in-out;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Слегка увеличиваем иконки внутри кнопок */
+.action-buttons .btn .bi {
+    font-size: 1.1rem;
+}
