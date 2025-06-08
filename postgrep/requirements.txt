@@ -1,0 +1,9 @@
+# requirements.txt
+fastapi
+uvicorn
+psycopg2-binary
+python-dotenv
+
+
+passlib[bcrypt]
+email-validator

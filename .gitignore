@@ -1,0 +1,37 @@
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
+
+# Файлы IDE 
+.idea/
+.vscode/
+
+# Резервные копии и архивы 
+
+/backup/backups_archive/
+
+
+
+# Приватные ключи и сертификаты
+*.pem
+*.key
+
+# Зависимости Python 
+
+# Кэш Python
+/postgrep/__pycache__/
+*.pyc
+
+# Виртуальные окружения
+/postgrep/venv/
+/postgrep/.venv/
+
+# wordpress
+/wordpress/*
+!/wordpress/wp-content/themes/neve-child/
+!/wordpress/nginx-conf/
+!/wordpress/.dockerignore
+!/wordpress/.env
+!/wordpress/docker-compose.yml
+
+

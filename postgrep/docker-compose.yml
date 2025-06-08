@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:17.5
+    container_name: postgres_db
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - suppliers_network
+
+  pgadmin:
+    image: dpage/pgadmin4:9.0.0
+    container_name: pgadmin4
+    restart: always
+    ports:
+      - "5050:${PGADMIN_LISTEN_PORT}" 
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - suppliers_network
+
+
+
+  api: # New API service
+    build: . # Build from the current directory where Dockerfile is located
+    container_name: suppliers_api
+    restart: always
+    ports:
+      - "8000:8000" 
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      # These variables are used by app.py to connect to the DB
+      POSTGRES_HOST: db # 'db' is the service name of your PostgreSQL container
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - db # Ensure DB is up before starting the API
+    networks:
+      - suppliers_network
+
+  
+volumes:
+  db-data:  
+  pgadmin-data:
+
+networks:
+  suppliers_network:

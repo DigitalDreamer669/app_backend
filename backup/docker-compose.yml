@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Сервис для бэкапа данных PostgreSQL
+  db_backup:
+    image: ubuntu:latest # Используем простой образ для выполнения tar
+    container_name: db_backup_runner # Даем осмысленное имя временному контейнеру
+    volumes:
+      # Монтируем Docker Volume с данными PostgreSQL
+      - postgrep_db-data:/volume_to_backup
+      # Монтируем директорию на хосте, куда будут сохраняться бэкапы
+      - ./backups_archive:/backup_dest
+    command: >
+      bash -c "
+        echo 'Starting PostgreSQL backup...' &&
+        tar -czf /backup_dest/postgres_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /volume_to_backup . &&
+        echo 'PostgreSQL backup completed.'
+      "
+    # Настройки для использования томов, которые созданы основным docker-compose.yml
+    # Не определяем их здесь, а ссылаемся на внешние (если они уже существуют)
+    # Если они не созданы, Docker Compose попытается их создать как внешние
+    # Для этого вам нужно указать, что это существующие тома, а не новые.
+    # Если вы запускаете это из той же директории, где и основной docker-compose.yml
+    # (или они используют одно и то же имя проекта), то volumes: external: true
+    # может быть не нужен, т.к. они уже "видны" в контексте проекта.
+    # Но для явности можно оставить.
+    # Однако, если ваш основной docker-compose.yml определяет эти тома,
+    # то нет необходимости в `external: true` здесь, т.к. они будут в том же проекте.
+    # Проще всего убедиться, что оба compose-файла видят одни и те же тома.
+
+  # Сервис для бэкапа данных pgAdmin
+  pgadmin_backup:
+    image: ubuntu:latest # Используем простой образ для выполнения tar
+    container_name: pgadmin_backup_runner
+    volumes:
+      # Монтируем Docker Volume с данными pgAdmin
+      - postgrep_pgadmin-data:/volume_to_backup
+      # Монтируем директорию на хосте, куда будут сохраняться бэкапы
+      - ./backups_archive:/backup_dest
+    command: >
+      bash -c "
+        echo 'Starting pgAdmin backup...' &&
+        tar -czf /backup_dest/pgadmin_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /volume_to_backup . &&
+        echo 'pgAdmin backup completed.'
+      "
+
+# Определяем тома, чтобы docker-compose их увидел
+# ВАЖНО: Эти тома должны быть определены в вашем основном docker-compose.yml
+# и быть названы точно так же, чтобы этот compose-файл мог их монтировать.
+volumes:
+  postgrep_db-data:
+    external: true # Указываем, что этот том уже существует и управляется Docker
+  postgrep_pgadmin-data:
+    external: true # Указываем, что этот том уже существует и управляется Docker
