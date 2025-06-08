@@ -11,6 +11,8 @@ from uuid import UUID, uuid4
 from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr, validator
 import logging
+from fastapi.middleware.cors import CORSMiddleware
+ 
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +22,26 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 app = FastAPI()
+
+
+origins = [
+    "http://localhost:7600",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:8000",
+    "null"  
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"], # Allows all headers
+)
+
 
 # --- Environment Variables Validation ---
 required_env_vars = [
