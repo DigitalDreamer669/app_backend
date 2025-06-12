@@ -80,6 +80,7 @@ ADMIN_PASSWORD_ENV = os.getenv("ADMIN_PASSWORD")
 
 # In-memory session storage with expiration (use Redis in production)
 active_admin_sessions = {}  # token: expiration_time
+active_user_sessions = {}
 
 # --- Pydantic Models ---
 class UserCreateUpdate(BaseModel):
@@ -157,6 +158,17 @@ class AdminLoginResponse(BaseModel):
     token: str
     token_type: str
 
+class UserLoginResponse(BaseModel):
+    """
+    Ответ на успешный вход пользователя с токеном.
+    """
+    token: str
+    token_type: str = "bearer"
+    user_info: UserPublicResponse
+
+
+
+
 # --- Admin Authentication ---
 def cleanup_expired_sessions():
     """Удаление истекших токенов"""
@@ -164,6 +176,19 @@ def cleanup_expired_sessions():
     expired_tokens = [token for token, expiry in active_admin_sessions.items() if current_time > expiry]
     for token in expired_tokens:
         active_admin_sessions.pop(token, None)
+
+
+
+def cleanup_expired_user_sessions():
+    """Удаление истекших пользовательских сессий"""
+    current_time = datetime.now()
+    expired_tokens = [
+        token for token, data in active_user_sessions.items() 
+        if data["expires"] < current_time
+    ]
+    for token in expired_tokens:
+        active_user_sessions.pop(token, None)
+        logger.info(f"Удалена истекшая сессия пользователя")
 
 async def verify_admin_session(authorization: Annotated[str, Header()]):
     """
@@ -234,11 +259,12 @@ async def health_check():
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
 # --- User Login Endpoint ---
-@app.post("/login", response_model=UserPublicResponse)
+@app.post("/login", response_model=UserLoginResponse)
 async def login_user(user_login: UserLogin):
     """
-    Аутентификация обычного пользователя.
+    Аутентификация обычного пользователя и возврат токена сессии.
     """
+    cleanup_expired_user_sessions() # Очищаем просроченные сессии
     conn = None
     try:
         conn = get_db_connection()
@@ -254,36 +280,58 @@ async def login_user(user_login: UserLogin):
         )
         user_record = cur.fetchone()
 
+        # Проверка 1: Пользователь не найден
         if not user_record:
-            logger.warning(f"Login attempt with non-existent username: {user_login.username}")
+            logger.warning(f"Попытка входа с несуществующим логином: {user_login.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password"
+                detail="Неверный логин или пароль"
             )
 
-        # Простое сравнение паролей без шифрования
+        # Проверка 2: Неверный пароль
+        # ВАЖНО: В реальном приложении здесь должна быть проверка хеша пароля
         if user_login.password != user_record['password']:
-            logger.warning(f"Failed login attempt for user: {user_login.username}")
+            logger.warning(f"Неудачная попытка входа для пользователя: {user_login.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password"
+                detail="Неверный логин или пароль"
             )
 
+        # Проверка 3: Аккаунт неактивен
         if not user_record['is_active']:
-            logger.warning(f"Login attempt for inactive user: {user_login.username}")
+            logger.warning(f"Попытка входа для неактивного пользователя: {user_login.username}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Account is inactive. Contact administrator."
+                detail="Аккаунт неактивен. Свяжитесь с администратором."
             )
 
-        logger.info(f"Successful login for user: {user_login.username}")
-        return UserPublicResponse(**user_record)
+        # --- Генерация токена сессии ---
+        # 1. Генерируем простой уникальный токен
+        session_token = str(uuid4())
+        
+        # 2. Устанавливаем срок жизни - 8 часов
+        expiration_time = datetime.now() + timedelta(hours=8)
+        
+        # 3. Сохраняем сессию в словарь на сервере
+        active_user_sessions[session_token] = {
+            "user_id": user_record['id'],
+            "expires": expiration_time
+        }
+        
+        logger.info(f"Создана сессия для пользователя: {user_login.username}")
+        
+        # 4. Возвращаем новый ответ с токеном
+        return UserLoginResponse(
+            token=session_token,
+            user_info=UserPublicResponse(**user_record)
+        )
 
     except HTTPException as e:
+        # Перебрасываем HTTP исключения, чтобы FastAPI их обработал
         raise e
     except Exception as e:
-        logger.error(f"Error during user login: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Ошибка во время входа пользователя: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
     finally:
         if conn:
             cur.close()
@@ -582,6 +630,8 @@ async def admin_delete_user(user_id: UUID, _: bool = Depends(verify_admin_sessio
         if conn:
             cur.close()
             conn.close()
+
+
 
 # Запуск приложения
 if __name__ == "__main__":

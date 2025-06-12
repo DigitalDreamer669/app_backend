@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
+    if (!loginForm) return; // Выходим, если формы нет на странице
+
     const errorMessage = document.getElementById('errorMessage');
-    
-    // ИЗМЕНЕНО: Получаем поле по новому ID
-    const usernameInput = document.getElementById('floatingUsername'); 
+    const usernameInput = document.getElementById('floatingUsername');
     const passwordInput = document.getElementById('floatingPassword');
 
     // URL вашего FastAPI бэкенда
@@ -12,10 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault(); // Предотвращаем перезагрузку страницы
 
+        // Скрываем старые ошибки
         errorMessage.classList.add('d-none');
         errorMessage.textContent = '';
 
-        // Получаем значения из полей
         const username = usernameInput.value.trim();
         const password = passwordInput.value.trim();
 
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Выполняем вызов API
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username: username, // Бэкенд ожидает именно поле 'username'
+                    username: username,
                     password: password
                 }),
             });
@@ -41,17 +40,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                // УСПЕХ
+                // --- УСПЕХ ---
                 console.log('Вход успешен:', data);
-                alert(`Добро пожаловать, ${data.username}!`);
+
+                // ИЗМЕНЕНИЕ: Имя пользователя теперь в data.user_info
+                alert(`Добро пожаловать, ${data.user_info.username}!`);
+                
+                // НОВОЕ: Сохраняем токен в localStorage для дальнейшего использования
+                localStorage.setItem('accessToken', data.token);
+                
+                // НОВОЕ: Перенаправляем пользователя в личный кабинет или на главную
+                // Замените '/dashboard' на URL вашей защищенной страницы
+                window.location.href = '/dashboard'; 
                 
             } else {
-                // ОШИБКА
+                // --- ОШИБКА АУТЕНТИФИКАЦИИ ---
                 errorMessage.textContent = data.detail || 'Произошла неизвестная ошибка.';
                 errorMessage.classList.remove('d-none');
             }
         } catch (error) {
-            // ОШИБКА СЕТИ
+            // --- ОШИБКА СЕТИ ИЛИ СЕРВЕРА ---
             console.error('Ошибка запроса на вход:', error);
             errorMessage.textContent = 'Не удалось подключиться к серверу. Попробуйте позже.';
             errorMessage.classList.remove('d-none');
