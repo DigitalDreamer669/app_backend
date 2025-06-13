@@ -25,6 +25,7 @@ get_header();
                     <tr>
                         <th scope="col">Логин</th>
                         <th scope="col">Email</th>
+                        <th scope="col">Тип</th>
                         <th scope="col">Активен</th>
                         <th scope="col" class="text-end">Действия</th>
                     </tr>
@@ -55,6 +56,10 @@ get_header();
                             <input type="email" class="form-control" id="email" required>
                         </div>
                         <div class="mb-3">
+                        <div class="mb-3">
+                            <label for="type_of_user" class="form-label">Тип пользователя</label>
+                            <input type="text" class="form-control" id="type_of_user" placeholder="Например, client или owner">
+                        </div>
                             <label for="password" class="form-label">Пароль</label>
                             <input type="password" class="form-control" id="password" required>
                             <div class="form-text">Введите новый пароль или оставьте пустым, чтобы не менять.</div>

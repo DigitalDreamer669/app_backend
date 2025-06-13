@@ -14,7 +14,7 @@ add_action( 'wp_enqueue_scripts', 'neve_child_parent_theme_enqueue_styles' );
  * Enqueue scripts and styles.
  */
 function neve_child_parent_theme_enqueue_styles() {
-        $version = "3.1";
+        $version = "4.3";
         wp_enqueue_style( 'neve-style', get_template_directory_uri() . '/style.css', $version);
         wp_enqueue_style( 'neve-child-style',
         get_stylesheet_directory_uri() . '/style.css', [ 'neve-style' ], $version);
